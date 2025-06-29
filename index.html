@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U.S. Urban Planning Career Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (Stone) with a Teal Accent -->
+    <!-- Application Structure Plan: A thematic, single-page application with a top navigation bar for quick scrolling. The structure is designed to guide the user from a broad national overview to specific, actionable insights. It starts with high-level stats (National Overview), moves to career development (Credentials), then provides the core interactive tool (State Explorer) for personalized research. This is followed by comparative visualizations (Charts) and sections dedicated to crucial topics like Diversity and guidance for Foreign-Trained professionals. This thematic flow, rather than a linear report structure, allows users to target the information most relevant to them, enhancing usability and comprehension. -->
+    <!-- Visualization & Content Choices: 
+        - National Overview: Goal: Inform. Method: High-impact stat cards (HTML/Tailwind) for quick key takeaways. Justification: More engaging than a paragraph of text.
+        - Credentials/Skills: Goal: Organize/Inform. Method: Side-by-side comparison cards and styled lists (HTML/Tailwind). Justification: Clearly delineates benefits and required skills for easy comparison.
+        - State Explorer: Goal: Compare/Explore. Method: Dropdown-driven dynamic content blocks and a dynamic bar chart (JS/Chart.js). Justification: Transforms a large, static data table into an interactive, user-driven tool. This is the most effective way to handle detailed, state-level data without overwhelming the user.
+        - Salary & Bike Charts: Goal: Compare. Method: Bar charts (Chart.js). Justification: Visual comparison across all states is far more intuitive for identifying trends and outliers than a table.
+        - DE&I Demographics: Goal: Inform. Method: Donut chart (Chart.js). Justification: Provides a quick, clear visual breakdown of professional demographics.
+        - All text and data are sourced from the provided report. Library/Method: Chart.js for all canvas-based charts. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                max-height: 60vh;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #0d9488; /* teal-600 */
+        }
+        .section-title {
+            border-bottom: 2px solid #14b8a6; /* teal-500 */
+            padding-bottom: 0.5rem;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="text-stone-800">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl md:text-2xl font-bold text-teal-700">Urban Planning Career Explorer</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Overview</a>
+                        <a href="#credentials" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Credentials</a>
+                        <a href="#explorer" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">State Explorer</a>
+                        <a href="#comparisons" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Comparisons</a>
+                        <a href="#diversity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Diversity</a>
+                        <a href="#guidance" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Guidance</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="bg-stone-200 border border-stone-300 rounded-md p-2 text-sm">
+                        <option value="#overview">Overview</option>
+                        <option value="#credentials">Credentials</option>
+                        <option value="#explorer">State Explorer</option>
+                        <option value="#comparisons">Comparisons</option>
+                        <option value="#diversity">Diversity</option>
+                        <option value="#guidance">Guidance</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="overview" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 section-title">National Overview</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                The U.S. urban planning profession is a growing field dedicated to building resilient, equitable, and sustainable communities. This overview provides a snapshot of the national employment landscape, offering key metrics on salary and job growth that set the stage for a deeper exploration into this vital profession.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="stat-card">
+                    <h3 class="font-bold text-xl text-teal-700">Median Annual Wage</h3>
+                    <p class="text-4xl font-extrabold mt-2">$75,950</p>
+                    <p class="text-stone-500 mt-2">Significantly above the $41,950 median for all occupations.</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="font-bold text-xl text-teal-700">Projected Job Growth</h3>
+                    <p class="text-4xl font-extrabold mt-2">11%</p>
+                    <p class="text-stone-500 mt-2">From 2022 to 2032, driven by population growth and sustainability focus.</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="font-bold text-xl text-teal-700">Top Paying Industry</h3>
+                    <p class="text-4xl font-extrabold mt-2">$102,960</p>
+                    <p class="text-stone-500 mt-2">Average mean annual wage in the Federal Government.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="credentials" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 section-title">The Value of Credentials & Skills</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                In a competitive job market, professional credentials and specialized skills are what set you apart. This section breaks down the tangible benefits of pursuing an accredited degree and AICP certification, and highlights the key competencies employers are actively seeking.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="stat-card p-6">
+                    <h3 class="font-semibold text-2xl mb-4 text-teal-700">Accredited Degree vs. Non-Accredited</h3>
+                    <p class="mb-4">Graduating from a Planning Accreditation Board (PAB) program provides a direct pathway to professional certification.</p>
+                    <div class="border-t border-stone-200 pt-4">
+                        <p class="font-bold text-lg">Path to AICP Certification (Master's)</p>
+                        <p><span class="font-semibold text-teal-600">PAB-Accredited:</span> 2 years of professional experience required.</p>
+                        <p><span class="font-semibold text-stone-600">Non-PAB:</span> 3 years of professional experience required.</p>
+                    </div>
+                </div>
+                 <div class="stat-card p-6">
+                    <h3 class="font-semibold text-2xl mb-4 text-teal-700">Benefits of AICP Certification</h3>
+                     <p class="mb-4">The American Institute of Certified Planners (AICP) is the profession's gold standard, offering significant career advantages.</p>
+                    <ul class="space-y-2 list-inside list-disc">
+                        <li><span class="font-bold">~$16,000 Higher Salary</span> on average than non-certified planners.</li>
+                        <li>Considered a <span class="font-bold">"professional pre-screen"</span> by employers.</li>
+                        <li>Demonstrates commitment to the <span class="font-bold">AICP Code of Ethics</span>.</li>
+                        <li>Catalyst for <span class="font-bold">career advancement</span> for 4 out of 5 members.</li>
+                    </ul>
+                </div>
+            </div>
+             <div class="stat-card p-6 mt-8">
+                <h3 class="font-semibold text-2xl mb-4 text-teal-700">In-Demand Skills</h3>
+                <p class="mb-4">Beyond credentials, employers seek planners with a versatile skill set. Developing expertise in these "billable and marketable" areas can significantly boost your career prospects.</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center">
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">GIS Analysis</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Technical Writing</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Data Analysis</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Community Engagement</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Project Management</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Graphic Design</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Traffic Modeling</p></div>
+                    <div class="bg-stone-100 p-3 rounded-lg"><p class="font-medium">Sustainable Development</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="explorer" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 section-title">State-by-State Explorer</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                The urban planning job market varies significantly across the U.S. Use this interactive tool to explore the unique professional landscape of each state. Select a state to view its entry-level salary, cost of living, key planning challenges, and opportunities for Black professionals.
+            </p>
+            <div class="mb-8">
+                <label for="state-select" class="block text-sm font-medium text-stone-700 mb-2">Select a State:</label>
+                <select id="state-select" class="w-full max-w-md p-3 border border-stone-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                    <option selected disabled>Choose a state...</option>
+                </select>
+            </div>
+            
+            <div id="state-data-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-3 p-6 bg-white rounded-xl shadow-lg flex items-center justify-center min-h-[400px]">
+                    <p class="text-xl text-stone-500">Select a state to see its details.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparisons" class="mb-16 scroll-mt-20">
+             <h2 class="text-3xl font-bold mb-4 section-title">Cross-State Comparisons</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                How do states stack up against each other? These visualizations provide a comparative look at key metrics across the country, helping you identify trends in salary vs. cost of living and commitment to alternative transportation.
+            </p>
+            <div class="space-y-12">
+                <div class="stat-card p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Entry Salary vs. Income for Comfort</h3>
+                    <p class="text-center text-stone-600 mb-4">This chart highlights the difference between starting pay and the income needed to live comfortably in various states, revealing the true purchasing power of an entry-level salary. (Data for "Comfort Income" available for select states).</p>
+                    <div class="chart-container">
+                        <canvas id="salaryComfortChart"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Bike Commute Friendliness Rankings</h3>
+                     <p class="text-center text-stone-600 mb-4">A state's investment in cycling infrastructure reflects its commitment to sustainable transportation. This chart ranks the top 20 most bike-friendly states.</p>
+                    <div class="chart-container">
+                        <canvas id="bikeFriendlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="diversity" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 section-title">Diversity, Equity & Inclusion</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                The planning profession is actively working to address historical inequities and build a more representative workforce. This section examines the current demographic landscape and highlights cities recognized for their supportive environments for Black professionals.
+            </p>
+             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-2 stat-card p-6 flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-2 text-center">Planner Demographics (2021)</h3>
+                     <p class="text-center text-stone-600 mb-4">Black professionals are significantly underrepresented in urban planning, a disparity the industry is working to change.</p>
+                    <div class="relative w-full max-w-xs h-64">
+                         <canvas id="demographicsChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-3 stat-card p-6">
+                    <h3 class="text-xl font-semibold mb-4">Top Cities for Black Professionals</h3>
+                    <p class="mb-4">Certain cities offer stronger economic opportunities, housing access, and community environments. The following cities are recognized as leaders in providing a favorable landscape for Black professionals.</p>
+                    <ul class="space-y-3">
+                        <li class="p-3 bg-stone-100 rounded-lg"><strong class="text-teal-700">#1 Washington, D.C.:</strong> Excels in economic and housing opportunity with the nation's highest median income for Black populations.</li>
+                        <li class="p-3 bg-stone-100 rounded-lg"><strong class="text-teal-700">#2 Atlanta, GA:</strong> Particularly strong in Black community and representation.</li>
+                        <li class="p-3 bg-stone-100 rounded-lg"><strong class="text-teal-700">Top Tier - Texas:</strong> San Antonio, Houston, and Dallas all offer promising environments and strong job markets.</li>
+                         <li class="p-3 bg-stone-100 rounded-lg"><strong class="text-teal-700">Top Tier - Florida:</strong> Cities like Palm Bay, Lakeland, and Tampa are noted as favorable.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="guidance" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 section-title">Guidance for Your Unique Path</h2>
+            <p class="mb-8 text-lg text-stone-600">
+                As an African American U.S. citizen raised and trained in Nigeria, your background is a significant asset in a field striving for greater diversity and global perspective. Here are strategic steps to navigate the U.S. job market and leverage your unique experience.
+            </p>
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <ul class="space-y-6">
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-lg">1</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-semibold">Validate Your Credentials</h4>
+                            <p class="text-stone-600">Obtain a formal evaluation of your Nigerian degree from a service like World Education Services (WES). This standardizes your qualifications for U.S. employers and is the first step toward certification.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-lg">2</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-semibold">Pursue AICP Certification</h4>
+                            <p class="text-stone-600">Make AICP your primary goal. It's the most recognized professional standard in the U.S. and will bridge any perception gaps about your foreign training, enhancing your marketability and earning potential.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-lg">3</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-semibold">Leverage Your Bicultural Background</h4>
+                            <p class="text-stone-600">Frame your experience as a strength. Your global perspective and cultural competency are invaluable in a profession focused on equity and community engagement. Highlight this unique value proposition in applications and interviews.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-lg">4</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-semibold">Target Your Job Search</h4>
+                            <p class="text-stone-600">Focus on cities with strong DE&I commitments and robust opportunities for Black professionals (e.g., Washington, D.C., Atlanta, major Texas cities). Consider large consulting firms and non-profits, which often have more experience with international credentials.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-white mt-16">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-stone-400">
+            <p>Data and insights derived from "The U.S. Urban Planning Job Market: A Comprehensive Analysis for Aspiring Professionals."</p>
+            <p>This application is for informational purposes only.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const stateData = {
+                "Alabama": { entrySalary: 63077, comfortIncome: null, unemployment: "2.7%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 46 },
+                "Alaska": { entrySalary: 74946, comfortIncome: null, unemployment: "4.8%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 34 },
+                "Arizona": { entrySalary: 64851, comfortIncome: null, unemployment: "3.6%", issues: "Extreme heat and rising housing costs are major concerns.", funding: "General infrastructure needs, with a focus on water management.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 37 },
+                "Arkansas": { entrySalary: 57545, comfortIncome: null, unemployment: "3.3%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 39 },
+                "California": { entrySalary: 68680, comfortIncome: 119475, unemployment: "4.8%", issues: "Severe housing affordability and supply crisis. Focus on infill development, reducing transportation emissions, and curbing sprawl.", funding: "Affordable housing construction, supportive housing for the unhoused, and infrastructure enabling housing growth.", friendliness: "General underrepresentation, but a large and diverse job market.", walkability: "High in major cities like San Francisco (89) and Long Beach (73).", bikeFriendlyRank: 4 },
+                "Colorado": { entrySalary: 73176, comfortIncome: 105955, unemployment: "3.3%", issues: "Managing rapid population growth while preserving open space.", funding: "General infrastructure needs, particularly transportation to manage growth.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 6 },
+                "Connecticut": { entrySalary: 66201, comfortIncome: null, unemployment: "4.4%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 13 },
+                "Delaware": { entrySalary: 69651, comfortIncome: null, unemployment: "4.5%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 7 },
+                "District of Columbia": { entrySalary: 78640, comfortIncome: null, unemployment: "5.1%", issues: "Housing affordability, managing density, and equitable development.", funding: "Transportation and housing are key priorities.", friendliness: "Ranks #1 for Black professionals, with high economic opportunity, housing access, and high median income for Black residents.", walkability: "High (Walk Score: 77).", bikeFriendlyRank: 'N/A' },
+                "Florida": { entrySalary: 52005, comfortIncome: null, unemployment: "3.1%", issues: "Housing supply and affordability (Live Local Act), auto-dependent development, water shortages, and environmental concerns.", funding: "Tax subsidies and funding for affordable housing development.", friendliness: "Favorable, with 4 cities in the top 12 for Black professionals (e.g., Palm Bay, Lakeland, Tampa).", walkability: "High in cities like Miami (77).", bikeFriendlyRank: 8 },
+                "Georgia": { entrySalary: 58761, comfortIncome: null, unemployment: "3.2%", issues: "Managing growth around Atlanta, transportation, and housing.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "Highly favorable. Atlanta ranks #2 for Black professionals, #1 for Black community and representation.", walkability: "Not specified", bikeFriendlyRank: 23 },
+                "Hawaii": { entrySalary: 72302, comfortIncome: 124467, unemployment: "2.8%", issues: "Extreme housing costs, land use regulations, and sea-level rise.", funding: "Housing and climate resilience initiatives.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 25 },
+                "Idaho": { entrySalary: 65478, comfortIncome: null, unemployment: "3.0%", issues: "Rapid growth, housing affordability, and infrastructure strain.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 36 },
+                "Illinois": { entrySalary: 67435, comfortIncome: null, unemployment: "4.8%", issues: "Legacy city challenges, infrastructure revitalization, and equitable development.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "High in Chicago (77).", bikeFriendlyRank: 11 },
+                "Indiana": { entrySalary: 66220, comfortIncome: null, unemployment: "3.6%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 20 },
+                "Iowa": { entrySalary: 65364, comfortIncome: null, unemployment: "2.8%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 24 },
+                "Kansas": { entrySalary: 62065, comfortIncome: null, unemployment: "2.9%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 21 },
+                "Kentucky": { entrySalary: 60442, comfortIncome: null, unemployment: "4.5%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 32 },
+                "Louisiana": { entrySalary: 59509, comfortIncome: null, unemployment: "4.3%", issues: "Coastal resilience, disaster recovery, and equitable redevelopment.", funding: "Infrastructure resilience and community development.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 40 },
+                "Maine": { entrySalary: 67378, comfortIncome: null, unemployment: "3.1%", issues: "Affordable housing, particularly in coastal areas, and an aging population.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 28 },
+                "Maryland": { entrySalary: 67541, comfortIncome: 108867, unemployment: "2.6%", issues: "Smart growth, transit-oriented development, and Chesapeake Bay preservation.", funding: "Transportation and environmental protection.", friendliness: "Generally favorable, with Baltimore ranking #8 for Black professionals.", walkability: "Not specified", bikeFriendlyRank: 9 },
+                "Massachusetts": { entrySalary: 76002, comfortIncome: 120141, unemployment: "2.9%", issues: "High housing costs, transportation modernization, and climate resilience.", funding: "Community Planning Grants for housing, transportation, infrastructure, and economic development.", friendliness: "General underrepresentation of Black professionals.", walkability: "High in Boston (83).", bikeFriendlyRank: 2 },
+                "Michigan": { entrySalary: 60655, comfortIncome: null, unemployment: "4.1%", issues: "Revitalization of industrial cities, water infrastructure (e.g., Flint), and economic diversification.", funding: "Infrastructure and community redevelopment.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 10 },
+                "Minnesota": { entrySalary: 68158, comfortIncome: null, unemployment: "2.9%", issues: "Affordable housing, transit expansion, and addressing racial disparities.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 5 },
+                "Mississippi": { entrySalary: 65908, comfortIncome: null, unemployment: "3.8%", issues: "Rural development, economic opportunity, and infrastructure deficits.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 50 },
+                "Missouri": { entrySalary: 65277, comfortIncome: null, unemployment: "3.0%", issues: "Urban core revitalization (St. Louis, Kansas City) and sprawl.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 49 },
+                "Montana": { entrySalary: 63874, comfortIncome: null, unemployment: "3.1%", issues: "Managing growth in scenic areas, housing affordability, and resource management.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 43 },
+                "Nebraska": { entrySalary: 66352, comfortIncome: null, unemployment: "2.7%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 48 },
+                "Nevada": { entrySalary: 70865, comfortIncome: null, unemployment: "5.7%", issues: "Water scarcity, rapid urban growth, and economic diversification beyond tourism.", funding: "Water infrastructure and managed growth initiatives.", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 38 },
+                "New Hampshire": { entrySalary: 67678, comfortIncome: null, unemployment: "2.6%", issues: "Affordable housing, preserving rural character amidst development pressure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 31 },
+                "New Jersey": { entrySalary: 70651, comfortIncome: 108992, unemployment: "4.4%", issues: "The only state requiring planner licensing. High density, redevelopment of brownfields, and transit infrastructure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 26 },
+                "New Mexico": { entrySalary: 67439, comfortIncome: null, unemployment: "4.8%", issues: "Water scarcity, rural development, and preserving cultural heritage.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 35 },
+                "New York": { entrySalary: 76135, comfortIncome: 114691, unemployment: "4.6%", issues: "Housing affordability, climate resilience (coastal flooding, heat), and modernizing infrastructure (PlaNYC).", funding: "Historic investments in infrastructure for climate resilience, quality of life, and green economy.", friendliness: "General underrepresentation of Black professionals.", walkability: "Very high in NYC (88).", bikeFriendlyRank: 15 },
+                "North Carolina": { entrySalary: 63244, comfortIncome: null, unemployment: "3.5%", issues: "Managing rapid growth in the Research Triangle, housing affordability, and infrastructure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 17 },
+                "North Dakota": { entrySalary: 73633, comfortIncome: null, unemployment: "2.0%", issues: "Managing boom-and-bust cycles from energy sector, infrastructure for small towns.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 41 },
+                "Ohio": { entrySalary: 66160, comfortIncome: null, unemployment: "3.8%", issues: "Revitalization of legacy cities, addressing population decline in some areas, and infrastructure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 16 },
+                "Oklahoma": { entrySalary: 64256, comfortIncome: null, unemployment: "3.4%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 42 },
+                "Oregon": { entrySalary: 73578, comfortIncome: null, unemployment: "4.2%", issues: "Urban growth boundaries, housing affordability, and wildfire resilience.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "High in Portland (74).", bikeFriendlyRank: 3 },
+                "Pennsylvania": { entrySalary: 69758, comfortIncome: null, unemployment: "3.4%", issues: "Revitalizing older industrial towns, infrastructure, and managing development in rural areas.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "High in Philadelphia (75).", bikeFriendlyRank: 19 },
+                "Rhode Island": { entrySalary: 68151, comfortIncome: null, unemployment: "3.9%", issues: "Coastal resilience, affordable housing, and economic development.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 18 },
+                "South Carolina": { entrySalary: 64577, comfortIncome: null, unemployment: "3.2%", issues: "Coastal development pressures, tourism impacts, and infrastructure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 47 },
+                "South Dakota": { entrySalary: 69591, comfortIncome: null, unemployment: "1.8%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 45 },
+                "Tennessee": { entrySalary: 63162, comfortIncome: null, unemployment: "3.2%", issues: "Rapid growth in cities like Nashville, transportation, and housing affordability.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 29 },
+                "Texas": { entrySalary: 64835, comfortIncome: null, unemployment: "4.0%", issues: "Housing affordability, water supply management, property tax relief, and diverse transportation options.", funding: "Largest-ever investment in water projects and infrastructure.", friendliness: "Highly favorable, with 4 cities in the top 10 for Black professionals (San Antonio, Houston, Dallas, Austin).", walkability: "Not specified", bikeFriendlyRank: 30 },
+                "Utah": { entrySalary: 63354, comfortIncome: null, unemployment: "2.9%", issues: "Managing rapid population growth, water conservation, and air quality.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 14 },
+                "Vermont": { entrySalary: 73993, comfortIncome: null, unemployment: "2.7%", issues: "Preserving rural character, affordable housing, and strengthening local economies.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 22 },
+                "Virginia": { entrySalary: 68994, comfortIncome: 106704, unemployment: "3.0%", issues: "Managing growth in Northern Virginia, transportation, and coastal resilience.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 12 },
+                "Washington": { entrySalary: 78819, comfortIncome: 109658, unemployment: "4.5%", issues: "Accommodating significant population growth, funding transportation, and a severe affordable housing crisis.", funding: "Reliable funding for transportation infrastructure and new incentive programs for affordable housing.", friendliness: "General underrepresentation of Black professionals.", walkability: "High in Seattle (74).", bikeFriendlyRank: 1 },
+                "West Virginia": { entrySalary: 53875, comfortIncome: null, unemployment: "4.0%", issues: "Economic transition away from coal, population loss, and infrastructure.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 44 },
+                "Wisconsin": { entrySalary: 61000, comfortIncome: null, unemployment: "3.2%", issues: "General issues of car-centric development, sprawl, and housing shortages.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 27 },
+                "Wyoming": { entrySalary: 62000, comfortIncome: null, unemployment: "2.8%", issues: "Managing boom-and-bust cycles from energy sector, housing in resort towns.", funding: "General infrastructure needs (roads, water, broadband).", friendliness: "General underrepresentation of Black professionals.", walkability: "Not specified", bikeFriendlyRank: 33 },
+            };
+
+            const stateSelect = document.getElementById('state-select');
+            const dataContainer = document.getElementById('state-data-container');
+
+            Object.keys(stateData).sort().forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+
+            let stateSalaryChart = null;
+
+            stateSelect.addEventListener('change', function () {
+                const selectedState = this.value;
+                const data = stateData[selectedState];
+
+                if (!data) {
+                    dataContainer.innerHTML = `<div class="lg:col-span-3 p-6 bg-white rounded-xl shadow-lg flex items-center justify-center min-h-[400px]">
+                        <p class="text-xl text-stone-500">Data not found for ${selectedState}.</p>
+                    </div>`;
+                    return;
+                }
+
+                dataContainer.innerHTML = `
+                    <div class="stat-card lg:col-span-2 p-6">
+                        <h4 class="text-xl font-bold mb-4 text-teal-700">${selectedState} at a Glance</h4>
+                        <div class="w-full h-64">
+                             <canvas id="stateSalaryChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-stone-500 mt-2">General state unemployment (all occupations): ${data.unemployment}</p>
+                    </div>
+
+                    <div class="stat-card p-6 space-y-4">
+                        <h4 class="text-lg font-semibold">Job Friendliness: Black Professionals</h4>
+                        <p>${data.friendliness}</p>
+                        <h4 class="text-lg font-semibold">Livability</h4>
+                        <p><strong>Walkability:</strong> ${data.walkability}</p>
+                        <p><strong>Bike Friendly Rank:</strong> ${data.bikeFriendlyRank !== 'N/A' ? `#${data.bikeFriendlyRank}` : 'Not Ranked'}</p>
+                    </div>
+                    
+                    <div class="stat-card p-6">
+                        <h4 class="text-lg font-semibold">Unique Urban Planning Issues</h4>
+                        <p>${data.issues}</p>
+                    </div>
+
+                    <div class="stat-card p-6 lg:col-span-2">
+                        <h4 class="text-lg font-semibold">Most Funded Urban Planning Issues</h4>
+                        <p>${data.funding}</p>
+                    </div>
+                `;
+
+                const ctx = document.getElementById('stateSalaryChart').getContext('2d');
+                if(stateSalaryChart) {
+                    stateSalaryChart.destroy();
+                }
+                stateSalaryChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Entry Salary', 'Income for Comfort'],
+                        datasets: [{
+                            label: 'USD',
+                            data: [data.entrySalary, data.comfortIncome],
+                            backgroundColor: ['#14b8a6', '#fde047'],
+                            borderColor: ['#0f766e', '#ca8a04'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + (value / 1000) + 'k';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.x !== null) {
+                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.x);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            function createSalaryComfortChart() {
+                const ctx = document.getElementById('salaryComfortChart').getContext('2d');
+                const filteredData = Object.entries(stateData)
+                    .filter(([_, data]) => data.comfortIncome !== null)
+                    .sort((a, b) => b[1].comfortIncome - a[1].comfortIncome);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: filteredData.map(d => d[0]),
+                        datasets: [
+                            {
+                                label: 'Entry Salary',
+                                data: filteredData.map(d => d[1].entrySalary),
+                                backgroundColor: 'rgba(20, 184, 166, 0.7)',
+                                borderColor: '#0f766e',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Income for Comfort',
+                                data: filteredData.map(d => d[1].comfortIncome),
+                                backgroundColor: 'rgba(107, 114, 128, 0.7)',
+                                borderColor: '#374151',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true },
+                            x: { ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 } }
+                        },
+                        plugins: { tooltip: { mode: 'index', intersect: false } }
+                    }
+                });
+            }
+
+            function createBikeFriendlyChart() {
+                const ctx = document.getElementById('bikeFriendlyChart').getContext('2d');
+                const filteredData = Object.entries(stateData)
+                    .filter(([_, data]) => data.bikeFriendlyRank !== null && data.bikeFriendlyRank !== 'N/A' && data.bikeFriendlyRank <= 20)
+                    .sort((a, b) => a[1].bikeFriendlyRank - b[1].bikeFriendlyRank);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: filteredData.map(d => `${d[0]} (#${d[1].bikeFriendlyRank})`),
+                        datasets: [{
+                            label: 'Bike Friendly Rank',
+                            data: filteredData.map(d => 51 - d[1].bikeFriendlyRank), // Invert for visual representation
+                            backgroundColor: '#0d9488',
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { display: false }, y: { ticks: { font: { size: 10 } } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+            
+            function createDemographicsChart() {
+                const ctx = document.getElementById('demographicsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['White', 'Black/African American', 'Asian', 'Hispanic/Latino', 'Other'],
+                        datasets: [{
+                            label: 'Planner Demographics',
+                            data: [79, 5, 6, 8, 2], // Approximate percentages
+                            backgroundColor: ['#67e8f9', '#facc15', '#a78bfa', '#fb923c', '#9ca3af'],
+                            borderColor: '#f5f5f4',
+                            borderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createSalaryComfortChart();
+            createBikeFriendlyChart();
+            createDemographicsChart();
+
+            document.getElementById('mobile-nav').addEventListener('change', function(e) {
+                window.location.hash = e.target.value;
+            });
+        });
+    </script>
+</body>
+</html>
